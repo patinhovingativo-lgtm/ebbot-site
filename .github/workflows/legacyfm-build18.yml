@@ -14,20 +14,25 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Environment diagnostics
+      - name: Fetch offline viewer assets
         run: |
           set -euxo pipefail
-          python3 --version
-          curl --version | head -n 1
           mkdir -p out
-          printf 'LegacyFM pipeline running\n' > out/diagnostic.txt
           curl -fL --retry 3 https://threejs.org/examples/models/gltf/Xbot.glb -o out/Xbot.glb
+          curl -fL --retry 3 https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js -o out/three.min.js
+          curl -fL --retry 3 https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js -o out/GLTFLoader.js
+          curl -fL --retry 3 https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js -o out/OrbitControls.js
+          cat > out/ASSET_NOTICE.txt <<'EOF'
+LegacyFM Build 18 prototype asset bundle.
+Three.js library: MIT License.
+Xbot.glb: distributed with the Three.js examples repository; this prototype is private and not for redistribution. Replace with a confirmed CC0/owned production character before public release.
+EOF
           file out/Xbot.glb
-          du -h out/Xbot.glb
-      - name: Upload diagnostic artifact
+          du -h out/*
+      - name: Upload viewer assets
         uses: actions/upload-artifact@v4
         with:
-          name: legacyfm-build18-diagnostic
+          name: legacyfm-build18-assets
           path: out/
           if-no-files-found: error
           retention-days: 1
