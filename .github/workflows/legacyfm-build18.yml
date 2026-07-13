@@ -1,0 +1,29 @@
+name: LegacyFM Build 18 Asset Pipeline
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-assets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build asset package
+        run: |
+          set -euxo pipefail
+          mkdir -p out
+          curl -fL --retry 3 https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/RiggedFigure/glTF-Binary/RiggedFigure.glb -o out/RiggedFigure.glb
+          curl -fL --retry 3 https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/CesiumMan/glTF-Binary/CesiumMan.glb -o out/CesiumMan.glb
+          file out/*.glb
+          sha256sum out/*.glb > out/SHA256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: legacyfm-build18-assets
+          path: out/
+          if-no-files-found: error
+          retention-days: 1
