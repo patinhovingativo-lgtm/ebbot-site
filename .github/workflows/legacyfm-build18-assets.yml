@@ -16,13 +16,14 @@ jobs:
         run: |
           set -euxo pipefail
           mkdir -p out
+          curl -fL --retry 3 https://threejs.org/examples/models/gltf/Soldier.glb -o out/Soldier.glb
           curl -fL --retry 3 https://threejs.org/examples/models/gltf/Xbot.glb -o out/Xbot.glb
           curl -fL --retry 3 https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js -o out/three.min.js
           curl -fL --retry 3 https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js -o out/GLTFLoader.js
           curl -fL --retry 3 https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js -o out/OrbitControls.js
-          printf '%s\n' 'Three.js: MIT. Xbot is for this private prototype only; replace before public distribution.' > out/ASSET_NOTICE.txt
+          printf '%s\n' 'Three.js libraries: MIT. Soldier.glb and Xbot.glb are used only in this private prototype; replace or verify upstream asset terms before public distribution.' > out/ASSET_NOTICE.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: legacyfm-build18-offline-assets
+          name: legacyfm-build18-realistic-assets
           path: out/
           retention-days: 1
