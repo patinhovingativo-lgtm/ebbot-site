@@ -3,6 +3,8 @@ name: Build CEFET Trainer APK
 on:
   push:
     branches: [cefet-trainer-apk-build2]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
