@@ -1,0 +1,20 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'com.cefettrainer.app'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'com.cefettrainer.app'
+        minSdk 24
+        targetSdk 35
+        versionCode 6
+        versionName '0.5.0-native'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+dependencies {
+    implementation 'androidx.core:core:1.13.1'
+    implementation 'com.google.mlkit:text-recognition:16.0.1'
+}
