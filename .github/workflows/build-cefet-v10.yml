@@ -1,0 +1,91 @@
+name: Build CEFET Trainer v10
+
+on:
+  push:
+    branches: [cefet-trainer-v10-source]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inspect and apply v9 learning overlay when compatible
+        run: |
+          set -euxo pipefail
+          mkdir -p /tmp/v9
+          for n in 00 01 02; do
+            curl -fsSL "https://raw.githubusercontent.com/patinhovingativo-lgtm/ebbot-site/cefet-trainer-v9-focus2e-final/cefet-v9-overlay/part${n}.b64" -o "/tmp/v9/part${n}.b64"
+          done
+          cat /tmp/v9/part*.b64 | tr -d '\r\n ' > /tmp/v9/all.b64
+          base64 -d /tmp/v9/all.b64 > /tmp/v9.patch.gz
+          gzip -t /tmp/v9.patch.gz
+          gzip -dc /tmp/v9.patch.gz > /tmp/v9.patch
+          echo '--- v9 patch head ---'
+          head -100 /tmp/v9.patch
+          echo '--- compatibility check ---'
+          cd cefet-trainer
+          if git apply --check /tmp/v9.patch; then
+            git apply /tmp/v9.patch
+            echo 'V9_OVERLAY_APPLIED=yes' >> "$GITHUB_ENV"
+          else
+            echo 'V9_OVERLAY_APPLIED=no' >> "$GITHUB_ENV"
+            echo 'v9 patch not directly compatible; continuing with source for diagnosis.'
+          fi
+
+      - name: Show important source sections
+        run: |
+          set -euxo pipefail
+          grep -R "versionName\|Prontidão\|Aprender\|Diagnóstico\|Foco\|OCR\|revis" -n cefet-trainer | head -160 || true
+          wc -l cefet-trainer/app/src/main/java/com/cefettrainer/app/MainActivity.java
+
+      - name: Upload inspected source
+        uses: actions/upload-artifact@v4
+        with:
+          name: CEFET-Trainer-v10-inspected-source
+          path: cefet-trainer
+          if-no-files-found: error
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK 35
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build diagnostic APK
+        run: |
+          set -euxo pipefail
+          cd cefet-trainer
+          gradle :app:assembleDebug --stacktrace --no-daemon
+
+      - name: Verify APK
+        run: |
+          set -euxo pipefail
+          APK="$(find cefet-trainer -path '*/app/build/outputs/apk/debug/*.apk' | head -1)"
+          test -s "$APK"
+          unzip -t "$APK" >/dev/null
+          sha256sum "$APK"
+          cp "$APK" CEFET_Trainer_v0.10.0_diagnostic.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CEFET-Trainer-v0.10.0-diagnostic
+          path: CEFET_Trainer_v0.10.0_diagnostic.apk
+          if-no-files-found: error
