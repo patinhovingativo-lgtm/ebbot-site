@@ -3,6 +3,8 @@ name: Build CEFET Trainer v9 Focus
 on:
   push:
     branches: [cefet-trainer-v9-focus2e-final]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
