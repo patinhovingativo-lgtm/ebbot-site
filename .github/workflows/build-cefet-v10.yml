@@ -16,39 +16,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Inspect and apply v9 learning overlay when compatible
+      - name: Finalize v0.10 source and run source checks
         run: |
           set -euxo pipefail
-          mkdir -p /tmp/v9
-          for n in 00 01 02; do
-            curl -fsSL "https://raw.githubusercontent.com/patinhovingativo-lgtm/ebbot-site/cefet-trainer-v9-focus2e-final/cefet-v9-overlay/part${n}.b64" -o "/tmp/v9/part${n}.b64"
-          done
-          cat /tmp/v9/part*.b64 | tr -d '\r\n ' > /tmp/v9/all.b64
-          base64 -d /tmp/v9/all.b64 > /tmp/v9.patch.gz
-          gzip -t /tmp/v9.patch.gz
-          gzip -dc /tmp/v9.patch.gz > /tmp/v9.patch
-          echo '--- v9 patch head ---'
-          head -100 /tmp/v9.patch
-          echo '--- compatibility check ---'
-          cd cefet-trainer
-          if git apply --check /tmp/v9.patch; then
-            git apply /tmp/v9.patch
-            echo 'V9_OVERLAY_APPLIED=yes' >> "$GITHUB_ENV"
-          else
-            echo 'V9_OVERLAY_APPLIED=no' >> "$GITHUB_ENV"
-            echo 'v9 patch not directly compatible; continuing with source for diagnosis.'
-          fi
+          python3 tools/v10_finalize.py
+          grep -q "versionName '0.10.0'" cefet-trainer/app/build.gradle
+          grep -q 'android:name=".V10Activity"' cefet-trainer/app/src/main/AndroidManifest.xml
+          grep -q 'ExamV10Activity.class' cefet-trainer/app/src/main/java/com/cefettrainer/app/V10Activity.java
+          grep -q 'Simulado CEFET — 30 questões' cefet-trainer/app/src/main/java/com/cefettrainer/app/ExamV10Activity.java
+          grep -q 'Comparar leituras' cefet-trainer/app/src/main/java/com/cefettrainer/app/EssayCoachActivity.java
+          echo 'Source checks passed.'
 
-      - name: Show important source sections
-        run: |
-          set -euxo pipefail
-          grep -R "versionName\|Prontidão\|Aprender\|Diagnóstico\|Foco\|OCR\|revis" -n cefet-trainer | head -160 || true
-          wc -l cefet-trainer/app/src/main/java/com/cefettrainer/app/MainActivity.java
-
-      - name: Upload inspected source
+      - name: Upload final source snapshot
         uses: actions/upload-artifact@v4
         with:
-          name: CEFET-Trainer-v10-inspected-source
+          name: CEFET-Trainer-v0.10.0-source
           path: cefet-trainer
           if-no-files-found: error
 
@@ -68,24 +50,32 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Build diagnostic APK
+      - name: Compile APK
         run: |
           set -euxo pipefail
           cd cefet-trainer
-          gradle :app:assembleDebug --stacktrace --no-daemon
+          gradle :app:clean :app:assembleDebug --stacktrace --no-daemon
 
-      - name: Verify APK
+      - name: Verify package, launcher, signature and ZIP integrity
         run: |
           set -euxo pipefail
-          APK="$(find cefet-trainer -path '*/app/build/outputs/apk/debug/*.apk' | head -1)"
+          APK="$(find cefet-trainer/app/build/outputs/apk/debug -name '*.apk' | head -1)"
           test -s "$APK"
           unzip -t "$APK" >/dev/null
-          sha256sum "$APK"
-          cp "$APK" CEFET_Trainer_v0.10.0_diagnostic.apk
+          BADGING="$($ANDROID_HOME/build-tools/35.0.0/aapt dump badging "$APK")"
+          echo "$BADGING" | head -20
+          echo "$BADGING" | grep -q "package: name='com.cefettrainer.app'"
+          echo "$BADGING" | grep -q "versionName='0.10.0'"
+          echo "$BADGING" | grep -q "launchable-activity: name='com.cefettrainer.app.V10Activity'"
+          $ANDROID_HOME/build-tools/35.0.0/apksigner verify --verbose "$APK"
+          sha256sum "$APK" | tee CEFET_Trainer_v0.10.0.sha256
+          cp "$APK" CEFET_Trainer_v0.10.0.apk
 
-      - name: Upload APK
+      - name: Upload installable APK
         uses: actions/upload-artifact@v4
         with:
-          name: CEFET-Trainer-v0.10.0-diagnostic
-          path: CEFET_Trainer_v0.10.0_diagnostic.apk
+          name: CEFET-Trainer-v0.10.0
+          path: |
+            CEFET_Trainer_v0.10.0.apk
+            CEFET_Trainer_v0.10.0.sha256
           if-no-files-found: error
