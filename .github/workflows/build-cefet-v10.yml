@@ -1,8 +1,8 @@
-name: Build CEFET Trainer v10.1 Install Fix
+name: Build CEFET Trainer v11 Memory Base
 
 on:
   push:
-    branches: [cefet-trainer-v10-1-installfix]
+    branches: [cefet-trainer-v11-memory-base]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -16,17 +16,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Finalize source and run source checks
+      - name: Finalize v0.11 learning source and run checks
         run: |
           set -euxo pipefail
           python3 tools/v10_finalize.py
-          grep -q "versionName '0.10.1-installfix'" cefet-trainer/app/build.gradle
-          grep -q "applicationId 'com.cefettrainer.app.v101'" cefet-trainer/app/build.gradle
+          python3 tools/v11_finalize.py
+          grep -q "versionName '0.11.0'" cefet-trainer/app/build.gradle
+          grep -q "applicationId 'com.cefettrainer.app.v110'" cefet-trainer/app/build.gradle
           grep -q 'android:name=".V10Activity"' cefet-trainer/app/src/main/AndroidManifest.xml
-          grep -q 'ExamV10Activity.class' cefet-trainer/app/src/main/java/com/cefettrainer/app/V10Activity.java
+          grep -q 'RESUMO PARA MEMORIZAR' cefet-trainer/app/src/main/java/com/cefettrainer/app/V10Activity.java
+          grep -q 'AGORA TESTE NO MEIO DA EXPLICAÇÃO' cefet-trainer/app/src/main/java/com/cefettrainer/app/V10Activity.java
+          grep -q 'Reconstruir minha base' cefet-trainer/app/src/main/java/com/cefettrainer/app/V10Activity.java
+          grep -q 'subjectPercent' cefet-trainer/app/src/main/java/com/cefettrainer/app/V10Activity.java
+          grep -q 'setScrollbarFadingEnabled(false)' cefet-trainer/app/src/main/java/com/cefettrainer/app/V10Activity.java
           grep -q 'Simulado CEFET — 30 questões' cefet-trainer/app/src/main/java/com/cefettrainer/app/ExamV10Activity.java
           grep -q 'Comparar leituras' cefet-trainer/app/src/main/java/com/cefettrainer/app/EssayCoachActivity.java
-          echo 'Source checks passed.'
+          echo 'v0.11 source checks passed.'
 
       - uses: actions/setup-java@v4
         with:
@@ -58,18 +63,18 @@ jobs:
           unzip -t "$APK" >/dev/null
           BADGING="$($ANDROID_HOME/build-tools/35.0.0/aapt dump badging "$APK")"
           echo "$BADGING" | head -20
-          echo "$BADGING" | grep -q "package: name='com.cefettrainer.app.v101'"
-          echo "$BADGING" | grep -q "versionName='0.10.1-installfix'"
+          echo "$BADGING" | grep -q "package: name='com.cefettrainer.app.v110'"
+          echo "$BADGING" | grep -q "versionName='0.11.0'"
           echo "$BADGING" | grep -q "launchable-activity: name='com.cefettrainer.app.V10Activity'"
           $ANDROID_HOME/build-tools/35.0.0/apksigner verify --verbose "$APK"
-          sha256sum "$APK" | tee CEFET_Trainer_v0.10.1_installfix.sha256
-          cp "$APK" CEFET_Trainer_v0.10.1_installfix.apk
+          sha256sum "$APK" | tee CEFET_Trainer_v0.11.0.sha256
+          cp "$APK" CEFET_Trainer_v0.11.0.apk
 
       - name: Upload installable APK
         uses: actions/upload-artifact@v4
         with:
-          name: CEFET-Trainer-v0.10.1-installfix
+          name: CEFET-Trainer-v0.11.0
           path: |
-            CEFET_Trainer_v0.10.1_installfix.apk
-            CEFET_Trainer_v0.10.1_installfix.sha256
+            CEFET_Trainer_v0.11.0.apk
+            CEFET_Trainer_v0.11.0.sha256
           if-no-files-found: error
