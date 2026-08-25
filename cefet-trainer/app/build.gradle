@@ -3,11 +3,11 @@ android {
     namespace 'com.cefettrainer.app'
     compileSdk 35
     defaultConfig {
-        applicationId 'com.cefettrainer.app.v101'
+        applicationId 'com.cefettrainer.app.v110'
         minSdk 24
         targetSdk 35
-        versionCode 11
-        versionName '0.10.1-installfix'
+        versionCode 12
+        versionName '0.11.0'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
