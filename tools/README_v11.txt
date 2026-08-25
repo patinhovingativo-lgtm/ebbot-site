@@ -1,0 +1,1 @@
+v0.11 goals: fix long-list scrolling, add per-topic/per-subject percentages, embed instant-feedback examples inside lessons, shorten memorization text, add subject summaries and a foundation reconstruction mode.
