@@ -3,16 +3,17 @@
 
     <application
         android:allowBackup="true"
-        android:label="CEFET Trainer Remaster"
+        android:label="CEFET Trainer 0.13"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
-        <activity android:name=".RemasteredActivity" android:exported="true">
+        <activity android:name=".RemasteredV13Activity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
+        <activity android:name=".RemasteredActivity" android:exported="false" />
         <activity android:name=".RemasteredExamActivity" android:exported="false" />
         <activity android:name=".V10Activity" android:exported="false" />
         <activity android:name=".ExamV10Activity" android:exported="false" />
