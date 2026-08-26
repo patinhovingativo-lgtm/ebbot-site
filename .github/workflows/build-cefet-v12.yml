@@ -16,9 +16,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Source checks
+      - name: Source checks and repair known catalog typo
         run: |
           set -euxo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('cefet-trainer/app/src/main/java/com/cefettrainer/app/StudyCatalog.java')
+          s = p.read_text(encoding='utf-8')
+          bad = "(argumento apoiado por evidências).'\n\"," 
+          if bad in s:
+              s = s.replace(bad, "(argumento apoiado por evidências).'\",")
+          p.write_text(s, encoding='utf-8')
+          PY
           grep -q "versionName '0.12.0'" cefet-trainer/app/build.gradle
           grep -q "applicationId 'com.cefettrainer.app.v120'" cefet-trainer/app/build.gradle
           grep -q 'android:name=".RemasteredActivity"' cefet-trainer/app/src/main/AndroidManifest.xml
