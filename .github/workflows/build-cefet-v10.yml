@@ -1,8 +1,8 @@
-name: Build CEFET Trainer v11 Memory Base
+name: Build CEFET Trainer v12 Remaster
 
 on:
   push:
-    branches: [cefet-trainer-v11-memory-base]
+    branches: [cefet-trainer-v12-remaster]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -16,22 +16,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Finalize v0.11 learning source and run checks
+      - name: Finalize remaster source and run source checks
         run: |
           set -euxo pipefail
           python3 tools/v10_finalize.py
           python3 tools/v11_finalize.py
-          grep -q "versionName '0.11.0'" cefet-trainer/app/build.gradle
-          grep -q "applicationId 'com.cefettrainer.app.v110'" cefet-trainer/app/build.gradle
-          grep -q 'android:name=".V10Activity"' cefet-trainer/app/src/main/AndroidManifest.xml
-          grep -q 'RESUMO PARA MEMORIZAR' cefet-trainer/app/src/main/java/com/cefettrainer/app/V10Activity.java
-          grep -q 'AGORA TESTE NO MEIO DA EXPLICAÇÃO' cefet-trainer/app/src/main/java/com/cefettrainer/app/V10Activity.java
-          grep -q 'Reconstruir minha base' cefet-trainer/app/src/main/java/com/cefettrainer/app/V10Activity.java
-          grep -q 'subjectPercent' cefet-trainer/app/src/main/java/com/cefettrainer/app/V10Activity.java
-          grep -q 'setScrollbarFadingEnabled(false)' cefet-trainer/app/src/main/java/com/cefettrainer/app/V10Activity.java
-          grep -q 'Simulado CEFET — 30 questões' cefet-trainer/app/src/main/java/com/cefettrainer/app/ExamV10Activity.java
-          grep -q 'Comparar leituras' cefet-trainer/app/src/main/java/com/cefettrainer/app/EssayCoachActivity.java
-          echo 'v0.11 source checks passed.'
+          python3 tools/v12_finalize.py
+          grep -q "versionName '0.12.0'" cefet-trainer/app/build.gradle
+          grep -q "applicationId 'com.cefettrainer.app.v120'" cefet-trainer/app/build.gradle
+          grep -q 'android:name=".RemasteredActivity"' cefet-trainer/app/src/main/AndroidManifest.xml
+          grep -q 'android:name=".RemasteredExamActivity"' cefet-trainer/app/src/main/AndroidManifest.xml
+          grep -q 'Reconstruir minha base' cefet-trainer/app/src/main/java/com/cefettrainer/app/RemasteredActivity.java
+          grep -q 'AGORA TESTE NO MEIO DA EXPLICAÇÃO' cefet-trainer/app/src/main/java/com/cefettrainer/app/RemasteredActivity.java
+          grep -q 'Lacuna provável detectada' cefet-trainer/app/src/main/java/com/cefettrainer/app/RemasteredActivity.java
+          grep -q 'Equação do 2º grau' cefet-trainer/app/src/main/java/com/cefettrainer/app/StudyCatalog.java
+          grep -q 'Substantivo' cefet-trainer/app/src/main/java/com/cefettrainer/app/StudyCatalog.java
+          echo 'v0.12 source checks passed.'
 
       - uses: actions/setup-java@v4
         with:
@@ -63,18 +63,18 @@ jobs:
           unzip -t "$APK" >/dev/null
           BADGING="$($ANDROID_HOME/build-tools/35.0.0/aapt dump badging "$APK")"
           echo "$BADGING" | head -20
-          echo "$BADGING" | grep -q "package: name='com.cefettrainer.app.v110'"
-          echo "$BADGING" | grep -q "versionName='0.11.0'"
-          echo "$BADGING" | grep -q "launchable-activity: name='com.cefettrainer.app.V10Activity'"
+          echo "$BADGING" | grep -q "package: name='com.cefettrainer.app.v120'"
+          echo "$BADGING" | grep -q "versionName='0.12.0'"
+          echo "$BADGING" | grep -q "launchable-activity: name='com.cefettrainer.app.RemasteredActivity'"
           $ANDROID_HOME/build-tools/35.0.0/apksigner verify --verbose "$APK"
-          sha256sum "$APK" | tee CEFET_Trainer_v0.11.0.sha256
-          cp "$APK" CEFET_Trainer_v0.11.0.apk
+          sha256sum "$APK" | tee CEFET_Trainer_v0.12.0_Remaster.sha256
+          cp "$APK" CEFET_Trainer_v0.12.0_Remaster.apk
 
       - name: Upload installable APK
         uses: actions/upload-artifact@v4
         with:
-          name: CEFET-Trainer-v0.11.0
+          name: CEFET-Trainer-v0.12.0-Remaster
           path: |
-            CEFET_Trainer_v0.11.0.apk
-            CEFET_Trainer_v0.11.0.sha256
+            CEFET_Trainer_v0.12.0_Remaster.apk
+            CEFET_Trainer_v0.12.0_Remaster.sha256
           if-no-files-found: error
