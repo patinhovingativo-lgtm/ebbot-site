@@ -16,17 +16,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Source checks and repair known catalog typo
+      - name: Source checks and repair known source typos
         run: |
           set -euxo pipefail
           python3 - <<'PY'
           from pathlib import Path
+
           p = Path('cefet-trainer/app/src/main/java/com/cefettrainer/app/StudyCatalog.java')
           s = p.read_text(encoding='utf-8')
           bad = "(argumento apoiado por evidências).'\n\"," 
           if bad in s:
               s = s.replace(bad, "(argumento apoiado por evidências).'\",")
           p.write_text(s, encoding='utf-8')
+
+          v = Path('cefet-trainer/app/src/main/java/com/cefettrainer/app/V10Activity.java')
+          s = v.read_text(encoding='utf-8')
+          if 'import android.app.AlertDialog;' not in s:
+              s = s.replace('import android.app.Activity;\n', 'import android.app.Activity;\nimport android.app.AlertDialog;\n', 1)
+          v.write_text(s, encoding='utf-8')
           PY
           grep -q "versionName '0.12.0'" cefet-trainer/app/build.gradle
           grep -q "applicationId 'com.cefettrainer.app.v120'" cefet-trainer/app/build.gradle
