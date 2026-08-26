@@ -1,4 +1,4 @@
-name: Build CEFET Trainer v12 Remaster
+name: Build CEFET Trainer v13
 
 on:
   push:
@@ -35,10 +35,10 @@ jobs:
               s = s.replace('import android.app.Activity;\n', 'import android.app.Activity;\nimport android.app.AlertDialog;\n', 1)
           v.write_text(s, encoding='utf-8')
           PY
-          grep -q "versionName '0.12.0'" cefet-trainer/app/build.gradle
-          grep -q "applicationId 'com.cefettrainer.app.v120'" cefet-trainer/app/build.gradle
-          grep -q 'android:name=".RemasteredActivity"' cefet-trainer/app/src/main/AndroidManifest.xml
-          grep -q 'class RemasteredActivity' cefet-trainer/app/src/main/java/com/cefettrainer/app/RemasteredActivity.java
+          grep -q "versionName '0.13.0'" cefet-trainer/app/build.gradle
+          grep -q "applicationId 'com.cefettrainer.app.v130'" cefet-trainer/app/build.gradle
+          grep -q 'android:name=".RemasteredV13Activity"' cefet-trainer/app/src/main/AndroidManifest.xml
+          grep -q 'class RemasteredV13Activity' cefet-trainer/app/src/main/java/com/cefettrainer/app/RemasteredV13Activity.java
           grep -q 'class StudyCatalog' cefet-trainer/app/src/main/java/com/cefettrainer/app/StudyCatalog.java
           grep -q 'class RemasteredExamActivity' cefet-trainer/app/src/main/java/com/cefettrainer/app/RemasteredExamActivity.java
 
@@ -72,18 +72,18 @@ jobs:
           unzip -t "$APK" >/dev/null
           BADGING="$($ANDROID_HOME/build-tools/35.0.0/aapt dump badging "$APK")"
           echo "$BADGING" | head -20
-          echo "$BADGING" | grep -q "package: name='com.cefettrainer.app.v120'"
-          echo "$BADGING" | grep -q "versionName='0.12.0'"
-          echo "$BADGING" | grep -q "launchable-activity: name='com.cefettrainer.app.RemasteredActivity'"
+          echo "$BADGING" | grep -q "package: name='com.cefettrainer.app.v130'"
+          echo "$BADGING" | grep -q "versionName='0.13.0'"
+          echo "$BADGING" | grep -q "launchable-activity: name='com.cefettrainer.app.RemasteredV13Activity'"
           $ANDROID_HOME/build-tools/35.0.0/apksigner verify --verbose "$APK"
-          sha256sum "$APK" | tee CEFET_Trainer_Remaster_v0.12.0.sha256
-          cp "$APK" CEFET_Trainer_Remaster_v0.12.0.apk
+          sha256sum "$APK" | tee CEFET_Trainer_v0.13.0.sha256
+          cp "$APK" CEFET_Trainer_v0.13.0.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: CEFET-Trainer-Remaster-v0.12.0
+          name: CEFET-Trainer-v0.13.0
           path: |
-            CEFET_Trainer_Remaster_v0.12.0.apk
-            CEFET_Trainer_Remaster_v0.12.0.sha256
+            CEFET_Trainer_v0.13.0.apk
+            CEFET_Trainer_v0.13.0.sha256
           if-no-files-found: error
