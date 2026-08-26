@@ -1,4 +1,4 @@
-name: Build CEFET Trainer v12 Remaster
+name: Build CEFET Trainer v13 Final Remaster
 
 on:
   push:
@@ -22,16 +22,19 @@ jobs:
           python3 tools/v10_finalize.py
           python3 tools/v11_finalize.py
           python3 tools/v12_finalize.py
-          grep -q "versionName '0.12.0'" cefet-trainer/app/build.gradle
-          grep -q "applicationId 'com.cefettrainer.app.v120'" cefet-trainer/app/build.gradle
+          grep -q "versionName '0.13.0'" cefet-trainer/app/build.gradle
+          grep -q "applicationId 'com.cefettrainer.app.v130'" cefet-trainer/app/build.gradle
           grep -q 'android:name=".RemasteredActivity"' cefet-trainer/app/src/main/AndroidManifest.xml
           grep -q 'android:name=".RemasteredExamActivity"' cefet-trainer/app/src/main/AndroidManifest.xml
           grep -q 'Reconstruir minha base' cefet-trainer/app/src/main/java/com/cefettrainer/app/RemasteredActivity.java
           grep -q 'AGORA TESTE NO MEIO DA EXPLICAÇÃO' cefet-trainer/app/src/main/java/com/cefettrainer/app/RemasteredActivity.java
           grep -q 'Lacuna provável detectada' cefet-trainer/app/src/main/java/com/cefettrainer/app/RemasteredActivity.java
-          grep -q 'Equação do 2º grau' cefet-trainer/app/src/main/java/com/cefettrainer/app/StudyCatalog.java
-          grep -q 'Substantivo' cefet-trainer/app/src/main/java/com/cefettrainer/app/StudyCatalog.java
-          echo 'v0.12 source checks passed.'
+          grep -q 'StudyCatalogExtra.create' cefet-trainer/app/src/main/java/com/cefettrainer/app/StudyCatalog.java
+          grep -q 'Crase' cefet-trainer/app/src/main/java/com/cefettrainer/app/StudyCatalogExtra.java
+          grep -q 'Radiciação' cefet-trainer/app/src/main/java/com/cefettrainer/app/StudyCatalogExtra.java
+          grep -q 'Lei de Ohm' cefet-trainer/app/src/main/java/com/cefettrainer/app/StudyCatalogExtra.java
+          grep -q 'Geopolítica' cefet-trainer/app/src/main/java/com/cefettrainer/app/StudyCatalogExtra.java
+          echo 'v0.13 final remaster source checks passed.'
 
       - uses: actions/setup-java@v4
         with:
@@ -63,18 +66,18 @@ jobs:
           unzip -t "$APK" >/dev/null
           BADGING="$($ANDROID_HOME/build-tools/35.0.0/aapt dump badging "$APK")"
           echo "$BADGING" | head -20
-          echo "$BADGING" | grep -q "package: name='com.cefettrainer.app.v120'"
-          echo "$BADGING" | grep -q "versionName='0.12.0'"
+          echo "$BADGING" | grep -q "package: name='com.cefettrainer.app.v130'"
+          echo "$BADGING" | grep -q "versionName='0.13.0'"
           echo "$BADGING" | grep -q "launchable-activity: name='com.cefettrainer.app.RemasteredActivity'"
           $ANDROID_HOME/build-tools/35.0.0/apksigner verify --verbose "$APK"
-          sha256sum "$APK" | tee CEFET_Trainer_v0.12.0_Remaster.sha256
-          cp "$APK" CEFET_Trainer_v0.12.0_Remaster.apk
+          sha256sum "$APK" | tee CEFET_Trainer_v0.13.0_Final_Remaster.sha256
+          cp "$APK" CEFET_Trainer_v0.13.0_Final_Remaster.apk
 
       - name: Upload installable APK
         uses: actions/upload-artifact@v4
         with:
-          name: CEFET-Trainer-v0.12.0-Remaster
+          name: CEFET-Trainer-v0.13.0-Final-Remaster
           path: |
-            CEFET_Trainer_v0.12.0_Remaster.apk
-            CEFET_Trainer_v0.12.0_Remaster.sha256
+            CEFET_Trainer_v0.13.0_Final_Remaster.apk
+            CEFET_Trainer_v0.13.0_Final_Remaster.sha256
           if-no-files-found: error
