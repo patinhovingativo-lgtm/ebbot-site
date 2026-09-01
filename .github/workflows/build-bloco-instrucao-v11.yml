@@ -1,0 +1,26 @@
+name: Build Bloco Instrucao V11
+on:
+  push:
+    paths:
+      - 'tools/gen_bloco_instrucao_v11.py'
+      - '.github/workflows/build-bloco-instrucao-v11.yml'
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generate model
+        run: python tools/gen_bloco_instrucao_v11.py
+      - name: Package files
+        run: |
+          cd models/v11
+          zip -9 BlocoInstrucao_V11.zip BlocoInstrucao_V11.obj BlocoInstrucao_V11.mtl README_V11.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BlocoInstrucao_V11
+          path: models/v11/BlocoInstrucao_V11.zip
+          if-no-files-found: error
