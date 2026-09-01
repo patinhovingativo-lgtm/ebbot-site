@@ -1,0 +1,26 @@
+name: Build Bloco Instrucao V8
+on:
+  push:
+    paths:
+      - 'tools/gen_bloco_instrucao_v8.py'
+      - '.github/workflows/build-bloco-instrucao-v8.yml'
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generate model
+        run: python tools/gen_bloco_instrucao_v8.py
+      - name: Package files
+        run: |
+          cd models/v8
+          zip -9 BlocoInstrucao_V8.zip BlocoInstrucao_V8.obj BlocoInstrucao_V8.mtl README_V8.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BlocoInstrucao_V8
+          path: models/v8/BlocoInstrucao_V8.zip
+          if-no-files-found: error
