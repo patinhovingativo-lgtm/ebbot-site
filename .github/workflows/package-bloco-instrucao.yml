@@ -1,0 +1,27 @@
+name: Package Bloco Instrucao
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'models/BlocoInstrucao_V4.obj'
+      - 'models/BlocoInstrucao_V4.mtl'
+      - '.github/workflows/package-bloco-instrucao.yml'
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package model
+        run: |
+          mkdir -p artifact
+          cp models/BlocoInstrucao_V4.obj artifact/
+          cp models/BlocoInstrucao_V4.mtl artifact/
+      - name: Upload model artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BlocoInstrucao_V4
+          path: artifact/
+          if-no-files-found: error
