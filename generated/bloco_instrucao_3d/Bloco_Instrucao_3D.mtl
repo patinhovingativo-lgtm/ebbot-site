@@ -1,0 +1,57 @@
+# Bloco de Instrucao materials
+
+newmtl WhiteBrick
+Ka 0.84 0.84 0.80
+Kd 0.92 0.92 0.88
+Ks 0.05 0.05 0.05
+Ns 8
+
+newmtl Concrete
+Ka 0.55 0.55 0.53
+Kd 0.72 0.72 0.69
+Ks 0.03 0.03 0.03
+Ns 4
+
+newmtl RoofTile
+Ka 0.34 0.17 0.09
+Kd 0.56 0.28 0.14
+Ks 0.06 0.04 0.03
+Ns 6
+
+newmtl GreenTrim
+Ka 0.10 0.18 0.12
+Kd 0.16 0.29 0.19
+Ks 0.03 0.03 0.03
+Ns 4
+
+newmtl Glass
+Ka 0.12 0.22 0.27
+Kd 0.34 0.57 0.66
+Ks 0.30 0.30 0.30
+Ns 40
+d 0.34
+illum 4
+
+newmtl Metal
+Ka 0.08 0.08 0.08
+Kd 0.20 0.21 0.20
+Ks 0.18 0.18 0.18
+Ns 24
+
+newmtl Chair
+Ka 0.07 0.07 0.07
+Kd 0.16 0.17 0.16
+Ks 0.08 0.08 0.08
+Ns 10
+
+newmtl Wood
+Ka 0.20 0.12 0.06
+Kd 0.48 0.29 0.13
+Ks 0.05 0.04 0.03
+Ns 6
+
+newmtl R6
+Ka 0.42 0.36 0.26
+Kd 0.73 0.64 0.47
+Ks 0.02 0.02 0.02
+Ns 2

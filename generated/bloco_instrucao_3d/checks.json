@@ -1,0 +1,28 @@
+{
+  "rooms_total": 16,
+  "rooms_per_floor": {
+    "1": 8,
+    "2": 8
+  },
+  "expected_rooms_total": 16,
+  "corridor_width": 16.0,
+  "classroom_size": [
+    42.0,
+    34.0
+  ],
+  "building_size": [
+    202.0,
+    84.0,
+    26.0
+  ],
+  "balcony_centered": true,
+  "stair_type": "U - two real stepped flights + mid landing",
+  "roof_type": "three true gable roofs + sloped balcony canopy",
+  "corridor_classroom_windows": 0,
+  "classroom_exterior_windows_per_room": 3,
+  "chairs_total": 16,
+  "r6_references": 3,
+  "obj_vertices": 5608,
+  "obj_faces": 4206,
+  "PASS": true
+}

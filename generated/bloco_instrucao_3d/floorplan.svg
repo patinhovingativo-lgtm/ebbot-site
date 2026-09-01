@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="888" height="456" viewBox="0 0 888 456">
+<rect width="100%" height="100%" fill="#f7f5ee"/>
+<text x="40" y="30" font-family="Arial" font-size="22" font-weight="700">Bloco de Instrucao - planta estrutural (mesma geometria do OBJ)</text>
+<rect x="40.0" y="60.0" width="808.0" height="336.0" fill="#ffffff" stroke="#111" stroke-width="3"/>
+<rect x="40.0" y="196.0" width="336.0" height="64.0" fill="#e6e6e6" stroke="#333" stroke-width="2"/>
+<rect x="512.0" y="196.0" width="336.0" height="64.0" fill="#e6e6e6" stroke="#333" stroke-width="2"/>
+<rect x="376.0" y="60.0" width="136.0" height="336.0" fill="#e9efe8" stroke="#1e4a2e" stroke-width="3"/>
+<rect x="40.0" y="60.0" width="168.0" height="136.0" fill="#fffdf7" stroke="#555" stroke-width="2"/>
+<text x="124.0" y="128.0" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="16">Sala 1</text>
+<rect x="40.0" y="260.0" width="168.0" height="136.0" fill="#fffdf7" stroke="#555" stroke-width="2"/>
+<text x="124.0" y="328.0" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="16">Sala 2</text>
+<rect x="208.0" y="60.0" width="168.0" height="136.0" fill="#fffdf7" stroke="#555" stroke-width="2"/>
+<text x="292.0" y="128.0" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="16">Sala 3</text>
+<rect x="208.0" y="260.0" width="168.0" height="136.0" fill="#fffdf7" stroke="#555" stroke-width="2"/>
+<text x="292.0" y="328.0" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="16">Sala 4</text>
+<rect x="512.0" y="60.0" width="168.0" height="136.0" fill="#fffdf7" stroke="#555" stroke-width="2"/>
+<text x="596.0" y="128.0" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="16">Sala 5</text>
+<rect x="512.0" y="260.0" width="168.0" height="136.0" fill="#fffdf7" stroke="#555" stroke-width="2"/>
+<text x="596.0" y="328.0" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="16">Sala 6</text>
+<rect x="680.0" y="60.0" width="168.0" height="136.0" fill="#fffdf7" stroke="#555" stroke-width="2"/>
+<text x="764.0" y="128.0" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="16">Sala 7</text>
+<rect x="680.0" y="260.0" width="168.0" height="136.0" fill="#fffdf7" stroke="#555" stroke-width="2"/>
+<text x="764.0" y="328.0" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="16">Sala 8</text>
+<rect x="384.0" y="20.0" width="120.0" height="40.0" fill="#ded6c8" stroke="#333" stroke-width="2"/>
+<text x="444.0" y="40.0" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="14">VARANDA</text>
+<text x="204.0" y="228.0" text-anchor="middle" font-family="Arial" font-size="14">CORREDOR 16 studs</text>
+<text x="684.0" y="228.0" text-anchor="middle" font-family="Arial" font-size="14">CORREDOR 16 studs</text>
+<text x="444.0" y="316.0" text-anchor="middle" font-family="Arial" font-size="14">HALL / ESCADA U</text>
+</svg>
