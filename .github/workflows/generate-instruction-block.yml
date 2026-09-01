@@ -1,0 +1,60 @@
+name: Generate Instruction Block 3D
+
+on:
+  push:
+    branches:
+      - chatgpt/bloco-instrucao-3d
+    paths:
+      - tools/generate_instruction_block.py
+      - .github/workflows/generate-instruction-block.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-model:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: chatgpt/bloco-instrucao-3d
+
+      - name: Generate OBJ and previews
+        run: python3 tools/generate_instruction_block.py
+
+      - name: Validate generated model
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('generated/bloco_instrucao_3d/model_summary.json')
+          data=json.loads(p.read_text())
+          assert data['rooms_per_floor']==8
+          assert data['total_rooms']==16
+          assert data['roof']['real_sloped_geometry'] is True
+          assert data['stairs']['type']=='U'
+          assert data['chairs']==16
+          assert Path('generated/bloco_instrucao_3d/bloco_instrucao.obj').stat().st_size > 10000
+          assert Path('generated/bloco_instrucao_3d/Bloco_Instrucao_3D.zip').stat().st_size > 10000
+          print(data)
+          PY
+
+      - name: Commit generated model
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add generated/bloco_instrucao_3d
+          if git diff --cached --quiet; then
+            echo "No generated changes"
+          else
+            git commit -m "Generate 3D instruction block model"
+            git push
+          fi
+
+      - name: Upload downloadable model artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Bloco-Instrucao-3D
+          path: generated/bloco_instrucao_3d/Bloco_Instrucao_3D.zip
