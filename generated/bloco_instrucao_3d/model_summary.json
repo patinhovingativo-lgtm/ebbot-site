@@ -1,0 +1,35 @@
+{
+  "dimensions_studs": {
+    "width": 212.0,
+    "depth": 98.0,
+    "floor_height": 14.0,
+    "total_wall_height": 28.0
+  },
+  "rooms_per_floor": 8,
+  "total_rooms": 16,
+  "room_size": [
+    44.0,
+    40.0
+  ],
+  "corridor_width": 18.0,
+  "central_core_width": 36.0,
+  "balcony": {
+    "width": 40,
+    "depth": 13,
+    "floor": 2
+  },
+  "stairs": {
+    "type": "U",
+    "steps_per_flight": 14,
+    "intermediate_landing": true
+  },
+  "roof": {
+    "type": "pitched_gable",
+    "real_sloped_geometry": true,
+    "central_raised_pavilion": true
+  },
+  "chairs": 16,
+  "r6_references": 2,
+  "vertices": 4512,
+  "faces": 3384
+}
