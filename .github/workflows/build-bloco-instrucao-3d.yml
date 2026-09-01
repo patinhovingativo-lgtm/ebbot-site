@@ -65,6 +65,13 @@ jobs:
           print('building:', checks['building_size'])
           PY
 
+      - name: Package downloadable ZIP
+        run: |
+          cd generated/bloco_instrucao_3d
+          rm -f Bloco_Instrucao_3D.zip
+          zip -9 Bloco_Instrucao_3D.zip Bloco_Instrucao_3D.obj Bloco_Instrucao_3D.mtl floorplan.svg checks.json README.md
+          ls -lh Bloco_Instrucao_3D.zip
+
       - name: Commit generated model back to branch
         run: |
           git config user.name "github-actions[bot]"
@@ -73,6 +80,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No generated changes"
           else
-            git commit -m "Generate validated Bloco Instrucao 3D OBJ"
+            git commit -m "Generate validated Bloco Instrucao 3D OBJ package"
             git push origin HEAD:generated/bloco-instrucao-3d
           fi
