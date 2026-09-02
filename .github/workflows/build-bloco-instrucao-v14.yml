@@ -1,0 +1,43 @@
+name: Build Bloco Instrucao V14
+on:
+  push:
+    paths:
+      - 'tools/gen_bloco_instrucao_v14.py'
+      - '.github/workflows/build-bloco-instrucao-v14.yml'
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pillow
+          npm install -g obj2gltf
+      - name: Generate V14
+        run: python tools/gen_bloco_instrucao_v14.py
+      - name: Convert to GLB
+        run: |
+          cd models/v14
+          obj2gltf -i BlocoInstrucao_V14.obj -o BlocoInstrucao_V14.glb
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('BlocoInstrucao_V14.glb')
+          data=p.read_bytes()
+          assert data[:4] == b'glTF', 'GLB header invalid'
+          assert len(data) > 10000, 'GLB unexpectedly small'
+          print('GLB OK', len(data))
+          PY
+      - name: Package
+        run: |
+          cd models/v14
+          zip -9 -r BlocoInstrucao_V14.zip BlocoInstrucao_V14.obj BlocoInstrucao_V14.mtl BlocoInstrucao_V14.glb README_V14.txt textures
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BlocoInstrucao_V14
+          path: models/v14/BlocoInstrucao_V14.zip
+          if-no-files-found: error
