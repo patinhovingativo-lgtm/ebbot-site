@@ -1,0 +1,29 @@
+name: Publish Bloco Instrucao V13 Direct
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/publish-bloco-instrucao-v13-direct.yml'
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generate V13
+        run: python tools/gen_bloco_instrucao_v13.py
+      - name: Publish direct files
+        run: |
+          mkdir -p downloads/bloco-instrucao-v13
+          cp models/v13/BlocoInstrucao_V13.obj downloads/bloco-instrucao-v13/BlocoInstrucao_V13.obj
+          cp models/v13/BlocoInstrucao_V13.mtl downloads/bloco-instrucao-v13/BlocoInstrucao_V13.mtl
+          cp models/v13/README_V13.txt downloads/bloco-instrucao-v13/README_V13.txt || true
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add downloads/bloco-instrucao-v13
+          git commit -m 'Publish Bloco Instrucao V13 direct files' || exit 0
+          git push
