@@ -1,0 +1,45 @@
+name: Build Bloco Instrucao V13 Compat
+on:
+  push:
+    paths:
+      - '.github/workflows/build-bloco-instrucao-v13-compat.yml'
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install converter
+        run: pip install trimesh pygltflib numpy
+      - name: Generate V13
+        run: python tools/gen_bloco_instrucao_v13.py
+      - name: Convert and validate
+        run: |
+          python - <<'PY'
+          import trimesh, os, shutil
+          src='models/v13/BlocoInstrucao_V13.obj'
+          out='models/v13_compat'
+          os.makedirs(out, exist_ok=True)
+          scene=trimesh.load(src, force='scene', process=False)
+          if not scene.geometry:
+              raise RuntimeError('OBJ sem geometria')
+          # Export one-file GLB for broad viewer compatibility
+          glb=scene.export(file_type='glb')
+          open(os.path.join(out,'BlocoInstrucao_V13_COMPAT.glb'),'wb').write(glb)
+          # Keep original OBJ/MTL too
+          shutil.copy(src, os.path.join(out,'BlocoInstrucao_V13.obj'))
+          shutil.copy('models/v13/BlocoInstrucao_V13.mtl', os.path.join(out,'BlocoInstrucao_V13.mtl'))
+          print('geometry:', len(scene.geometry), 'glb bytes:', len(glb))
+          PY
+      - name: Package
+        run: |
+          cd models/v13_compat
+          zip -9 BlocoInstrucao_V13_COMPAT.zip BlocoInstrucao_V13_COMPAT.glb BlocoInstrucao_V13.obj BlocoInstrucao_V13.mtl
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BlocoInstrucao_V13_COMPAT
+          path: models/v13_compat/BlocoInstrucao_V13_COMPAT.zip
+          if-no-files-found: error
