@@ -1,0 +1,83 @@
+name: Build CEFET Trainer v13 Final Remaster
+
+on:
+  push:
+    branches: [cefet-trainer-v12-remaster]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Finalize remaster source and run source checks
+        run: |
+          set -euxo pipefail
+          python3 tools/v10_finalize.py
+          python3 tools/v11_finalize.py
+          python3 tools/v12_finalize.py
+          grep -q "versionName '0.13.0'" cefet-trainer/app/build.gradle
+          grep -q "applicationId 'com.cefettrainer.app.v130'" cefet-trainer/app/build.gradle
+          grep -q 'android:name=".RemasteredActivity"' cefet-trainer/app/src/main/AndroidManifest.xml
+          grep -q 'android:name=".RemasteredExamActivity"' cefet-trainer/app/src/main/AndroidManifest.xml
+          grep -q 'Reconstruir minha base' cefet-trainer/app/src/main/java/com/cefettrainer/app/RemasteredActivity.java
+          grep -q 'AGORA TESTE NO MEIO DA EXPLICAÇÃO' cefet-trainer/app/src/main/java/com/cefettrainer/app/RemasteredActivity.java
+          grep -q 'Lacuna provável detectada' cefet-trainer/app/src/main/java/com/cefettrainer/app/RemasteredActivity.java
+          grep -q 'StudyCatalogExtra.create' cefet-trainer/app/src/main/java/com/cefettrainer/app/StudyCatalog.java
+          grep -q 'Crase' cefet-trainer/app/src/main/java/com/cefettrainer/app/StudyCatalogExtra.java
+          grep -q 'Radiciação' cefet-trainer/app/src/main/java/com/cefettrainer/app/StudyCatalogExtra.java
+          grep -q 'Lei de Ohm' cefet-trainer/app/src/main/java/com/cefettrainer/app/StudyCatalogExtra.java
+          grep -q 'Geopolítica' cefet-trainer/app/src/main/java/com/cefettrainer/app/StudyCatalogExtra.java
+          echo 'v0.13 final remaster source checks passed.'
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK 35
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Compile APK
+        run: |
+          set -euxo pipefail
+          cd cefet-trainer
+          gradle :app:clean :app:assembleDebug --stacktrace --no-daemon
+
+      - name: Verify package, launcher, signature and ZIP integrity
+        run: |
+          set -euxo pipefail
+          APK="$(find cefet-trainer/app/build/outputs/apk/debug -name '*.apk' | head -1)"
+          test -s "$APK"
+          unzip -t "$APK" >/dev/null
+          BADGING="$($ANDROID_HOME/build-tools/35.0.0/aapt dump badging "$APK")"
+          echo "$BADGING" | head -20
+          echo "$BADGING" | grep -q "package: name='com.cefettrainer.app.v130'"
+          echo "$BADGING" | grep -q "versionName='0.13.0'"
+          echo "$BADGING" | grep -q "launchable-activity: name='com.cefettrainer.app.RemasteredActivity'"
+          $ANDROID_HOME/build-tools/35.0.0/apksigner verify --verbose "$APK"
+          sha256sum "$APK" | tee CEFET_Trainer_v0.13.0_Final_Remaster.sha256
+          cp "$APK" CEFET_Trainer_v0.13.0_Final_Remaster.apk
+
+      - name: Upload installable APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CEFET-Trainer-v0.13.0-Final-Remaster
+          path: |
+            CEFET_Trainer_v0.13.0_Final_Remaster.apk
+            CEFET_Trainer_v0.13.0_Final_Remaster.sha256
+          if-no-files-found: error

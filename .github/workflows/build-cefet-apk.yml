@@ -1,0 +1,90 @@
+name: Build CEFET Trainer v0.7 APK
+
+on:
+  push:
+    branches: [cefet-trainer-v6-edital]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Reconstruct v6 baseline
+        run: |
+          rm -rf cefet-v7-build
+          mkdir -p cefet-v7-build
+          cat cefet-v6-payload/chunk*.b64 | tr -d '\r\n' > /tmp/cefet-v6.b64
+          base64 -d /tmp/cefet-v6.b64 > /tmp/cefet-v6.tar.gz
+          echo "8f7a42b8730e1bcc5f11136090fa5cefdcec6cf7cbb06552f5d0ca47b934a9a1  /tmp/cefet-v6.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/cefet-v6.tar.gz -C cefet-v7-build
+
+      - name: Apply v0.7 learn-first overlay
+        run: |
+          cat \
+            cefet-v7-learning-overlay/chunk00.b64 \
+            cefet-v7-learning-overlay/chunk01.b64 \
+            cefet-v7-learning-overlay/chunk015.b64 \
+            cefet-v7-learning-overlay/chunk02.b64 \
+            cefet-v7-learning-overlay/chunk03.b64 \
+            cefet-v7-learning-overlay/chunk04.b64 \
+            cefet-v7-learning-overlay/chunk05.b64 \
+            | tr -d '\r\n' > /tmp/cefet-v7-learning.b64
+          base64 -d /tmp/cefet-v7-learning.b64 > /tmp/cefet-v7-learning.tar.gz
+          echo "dae398f8e6783b202105a921cf5be2fb61d1efd552b8a65daadb1f79307acbd5  /tmp/cefet-v7-learning.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/cefet-v7-learning.tar.gz -C cefet-v7-build
+          test -f cefet-v7-build/app/src/main/java/com/cefettrainer/app/Glossary.java
+          test -f cefet-v7-build/app/src/main/java/com/cefettrainer/app/LessonEngine.java
+          test -f cefet-v7-build/app/src/main/java/com/cefettrainer/app/SelfTest.java
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Validate curriculum, lessons and generator
+        run: |
+          rm -rf /tmp/cefet-engine-classes
+          mkdir -p /tmp/cefet-engine-classes
+          javac -encoding UTF-8 -d /tmp/cefet-engine-classes \
+            cefet-v7-build/app/src/main/java/com/cefettrainer/app/Question.java \
+            cefet-v7-build/app/src/main/java/com/cefettrainer/app/Curriculum.java \
+            cefet-v7-build/app/src/main/java/com/cefettrainer/app/QuestionEngine.java \
+            cefet-v7-build/app/src/main/java/com/cefettrainer/app/Glossary.java \
+            cefet-v7-build/app/src/main/java/com/cefettrainer/app/LessonEngine.java \
+            cefet-v7-build/app/src/main/java/com/cefettrainer/app/SelfTest.java
+          java -cp /tmp/cefet-engine-classes com.cefettrainer.app.SelfTest
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK 35
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build APK
+        working-directory: cefet-v7-build
+        run: gradle :app:assembleDebug --stacktrace --no-daemon
+
+      - name: Verify APK archive
+        run: |
+          test -s cefet-v7-build/app/build/outputs/apk/debug/app-debug.apk
+          unzip -t cefet-v7-build/app/build/outputs/apk/debug/app-debug.apk >/dev/null
+          sha256sum cefet-v7-build/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CEFET-Trainer-v0.7.0-Aprender-e-Treinar
+          path: cefet-v7-build/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

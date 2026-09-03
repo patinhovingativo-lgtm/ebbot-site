@@ -1,0 +1,89 @@
+name: Build CEFET Trainer v13
+
+on:
+  push:
+    branches: [cefet-trainer-v12-remaster]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Source checks and repair known source typos
+        run: |
+          set -euxo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('cefet-trainer/app/src/main/java/com/cefettrainer/app/StudyCatalog.java')
+          s = p.read_text(encoding='utf-8')
+          bad = "(argumento apoiado por evidências).'\n\"," 
+          if bad in s:
+              s = s.replace(bad, "(argumento apoiado por evidências).'\",")
+          p.write_text(s, encoding='utf-8')
+
+          v = Path('cefet-trainer/app/src/main/java/com/cefettrainer/app/V10Activity.java')
+          s = v.read_text(encoding='utf-8')
+          if 'import android.app.AlertDialog;' not in s:
+              s = s.replace('import android.app.Activity;\n', 'import android.app.Activity;\nimport android.app.AlertDialog;\n', 1)
+          v.write_text(s, encoding='utf-8')
+          PY
+          grep -q "versionName '0.13.0'" cefet-trainer/app/build.gradle
+          grep -q "applicationId 'com.cefettrainer.app.v130'" cefet-trainer/app/build.gradle
+          grep -q 'android:name=".RemasteredV13Activity"' cefet-trainer/app/src/main/AndroidManifest.xml
+          grep -q 'class RemasteredV13Activity' cefet-trainer/app/src/main/java/com/cefettrainer/app/RemasteredV13Activity.java
+          grep -q 'class StudyCatalog' cefet-trainer/app/src/main/java/com/cefettrainer/app/StudyCatalog.java
+          grep -q 'class RemasteredExamActivity' cefet-trainer/app/src/main/java/com/cefettrainer/app/RemasteredExamActivity.java
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK 35
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Compile APK
+        run: |
+          set -euxo pipefail
+          cd cefet-trainer
+          gradle :app:clean :app:assembleDebug --stacktrace --no-daemon
+
+      - name: Verify APK
+        run: |
+          set -euxo pipefail
+          APK="$(find cefet-trainer/app/build/outputs/apk/debug -name '*.apk' | head -1)"
+          test -s "$APK"
+          unzip -t "$APK" >/dev/null
+          BADGING="$($ANDROID_HOME/build-tools/35.0.0/aapt dump badging "$APK")"
+          echo "$BADGING" | head -20
+          echo "$BADGING" | grep -q "package: name='com.cefettrainer.app.v130'"
+          echo "$BADGING" | grep -q "versionName='0.13.0'"
+          echo "$BADGING" | grep -q "launchable-activity: name='com.cefettrainer.app.RemasteredV13Activity'"
+          $ANDROID_HOME/build-tools/35.0.0/apksigner verify --verbose "$APK"
+          sha256sum "$APK" | tee CEFET_Trainer_v0.13.0.sha256
+          cp "$APK" CEFET_Trainer_v0.13.0.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CEFET-Trainer-v0.13.0
+          path: |
+            CEFET_Trainer_v0.13.0.apk
+            CEFET_Trainer_v0.13.0.sha256
+          if-no-files-found: error
