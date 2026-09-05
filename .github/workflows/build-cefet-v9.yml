@@ -1,0 +1,123 @@
+name: Build CEFET Trainer v10 Focus
+
+on:
+  push:
+    branches: [cefet-trainer-v10-focus]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Reconstruct v8 source payload
+        run: |
+          set -euxo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64
+          parts = sorted(Path('cefet-v8-final-payload').glob('chunk*.b64'))
+          s = ''.join(p.read_text() for p in parts)
+          s = ''.join(c for c in s if c.isalnum() or c in '+/=')
+          s += '=' * ((4 - len(s) % 4) % 4)
+          Path('/tmp/cefet-v8.tar.gz').write_bytes(base64.b64decode(s, validate=False))
+          print('base64 chars', len(s), 'decoded bytes', Path('/tmp/cefet-v8.tar.gz').stat().st_size)
+          PY
+          gzip -t /tmp/cefet-v8.tar.gz
+          mkdir -p cefet-v10-build
+          tar -xzf /tmp/cefet-v8.tar.gz -C cefet-v10-build
+          echo '--- source files ---'
+          find cefet-v10-build -maxdepth 6 -type f | sort | head -250
+
+      - name: Decode and inspect v9 learning overlay
+        run: |
+          set -euxo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64
+          parts = sorted(Path('cefet-v9-overlay').glob('part*.b64'))
+          s = ''.join(p.read_text() for p in parts)
+          s = ''.join(c for c in s if c.isalnum() or c in '+/=')
+          s += '=' * ((4 - len(s) % 4) % 4)
+          Path('/tmp/v9.patch.gz').write_bytes(base64.b64decode(s, validate=False))
+          print('overlay chars', len(s), 'decoded bytes', Path('/tmp/v9.patch.gz').stat().st_size)
+          PY
+          gzip -t /tmp/v9.patch.gz
+          gzip -dc /tmp/v9.patch.gz > /tmp/v9.patch
+          echo '--- overlay head ---'
+          head -80 /tmp/v9.patch
+
+      - name: Apply v9 learning overlay
+        run: |
+          set -euxo pipefail
+          ROOT="$(dirname "$(find cefet-v10-build -name settings.gradle -o -name settings.gradle.kts | head -1)")"
+          test -n "$ROOT"
+          echo "ROOT=$ROOT" >> "$GITHUB_ENV"
+          if grep -q '^diff --git a/' /tmp/v9.patch; then
+            cd "$ROOT"
+            git apply --check /tmp/v9.patch
+            git apply /tmp/v9.patch
+          else
+            cd "$ROOT"
+            if patch --dry-run -p1 < /tmp/v9.patch >/dev/null 2>&1; then
+              patch -p1 < /tmp/v9.patch
+            elif patch --dry-run -p0 < /tmp/v9.patch >/dev/null 2>&1; then
+              patch -p0 < /tmp/v9.patch
+            else
+              echo 'Could not determine patch strip level.'
+              exit 1
+            fi
+          fi
+          echo '--- version references ---'
+          grep -R "versionName\|0.9\|Focus" -n . | head -80 || true
+
+      - name: Upload reconstructed v9 source
+        uses: actions/upload-artifact@v4
+        with:
+          name: CEFET-Trainer-v9-reconstructed-source
+          path: cefet-v10-build
+          if-no-files-found: error
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK 35
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build v9 baseline
+        run: |
+          set -euxo pipefail
+          cd "$ROOT"
+          gradle :app:assembleDebug --stacktrace --no-daemon
+
+      - name: Verify baseline APK
+        run: |
+          set -euxo pipefail
+          APK="$(find "$ROOT" -path '*/app/build/outputs/apk/debug/*.apk' | head -1)"
+          test -s "$APK"
+          unzip -t "$APK" >/dev/null
+          sha256sum "$APK"
+          cp "$APK" CEFET_Trainer_v0.9.0_Baseline.apk
+
+      - name: Upload baseline APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CEFET-Trainer-v0.9.0-Baseline
+          path: CEFET_Trainer_v0.9.0_Baseline.apk
+          if-no-files-found: error
